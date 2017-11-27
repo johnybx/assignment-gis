@@ -16,12 +16,12 @@ Build a map-based application, which lets the user see geo-based data on a map a
 
 - [Open Street Maps](https://www.openstreetmap.org/)
 
-## My project
+## My project - Route Planner
 
 Fill in (either in English, or in Slovak):
 
-**Application description**: `<fill in>`
+**Application description**: `Web application for planning route trip. Choose points on map through which you want to travel. Route planner  will show you your route, closest points of interest of your choice and touristic tracks.`
 
-**Data source**: `<fill in>`
+**Data source**: `Openstreetmap`
 
-**Technologies used**: `<fill in>`
+**Technologies used**: `Python, Django, Javascript, HTML, CSS, Postgres, Postgis, Pgrouting`

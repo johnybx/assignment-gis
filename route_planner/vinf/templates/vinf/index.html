@@ -1,0 +1,149 @@
+{% extends 'vinf/base.html' %}
+{% load leaflet_tags %}
+{% load templatetags %}
+
+{%  block head %}
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <script type="text/javascript">
+        {% autoescape off %}
+         var geojson1 = {{geojson}};
+        {% endautoescape %}
+    </script>
+    <script src="{% static "vinf/js/spa.js" %}"></script>
+    <script src="{% static "vinf/js/js-cookie.js" %}"></script>
+{%  endblock %}
+
+{% block content %}
+
+
+
+    <div class="application pages">
+        <img class="header-background" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==">
+        <div class="container">
+            <form action="/vinf/" method="POST">
+                <div id="custom-search-input">
+                    <div class="input-group col-md-12">
+                        {% csrf_token %}
+                        <input id='autocomplete_form' type="text" list="autocomplete" class="search-query form-control" placeholder="Search" name="field_value" value="" />
+                        <datalist id="autocomplete">
+                        </datalist>
+                        <input type='hidden' class='form_field' name='field' value="_all">
+                        <input type="hidden" name="typ" value="search_filter">
+                        <input id="query" type='hidden' name='query' value="{{query}}">
+                        <span class="input-group-btn">
+                            <button class="btn btn-danger" type="submit">
+                                <span class=" glyphicon glyphicon-search"></span>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="container" style="width:100%">
+            <div class="container col-md-3">
+                <form action="/vinf/" class='search_filter_form' method="POST" style='display: none;'>
+                    {% csrf_token %}
+                    <input type='hidden' name='query' value="{{query}}">
+                    <input type='hidden' name='typ' value="search_filter">
+                    <input type='hidden' class='form_field' name='field' value="">
+                    <input type='hidden' class='form_field_value' name='field_value' value="">
+                </form>
+                <h4> Druh </h4>
+                <ul>
+                    {% for agg in aggs.druh.buckets  %}
+                        {% if agg.key %}
+                        <li><a class="a_submit" name='druh'> {{ agg.key}} ({{ agg.doc_count }})</a> </li>
+                        {% endif %}
+                    {% endfor %}
+                        <li><a class="a_submit" name='druh'> Reset </a></li>
+                </ul>
+                <h4> Stav </h4>
+                <ul>
+                    {% for agg in aggs.stav.buckets  %}
+                        {% if agg.key %}
+                        <li><a class="a_submit" name='stav'> {{ agg.key}} ({{ agg.doc_count }})</a> </li>
+                        {% endif %}
+                    {% endfor %}
+                        <li><a class="a_submit" name='stav'> Reset </a></li>
+                </ul>
+                <h4> Okres </h4>
+                <ul>
+                    {% for agg in aggs.okres.buckets  %}
+                        {% if agg.key %}
+                        <li><a class="a_submit" name='okres'> {{ agg.key}} ({{ agg.doc_count }})</a> </li>
+                        {% endif %}
+                    {% endfor %}
+                        <li><a class="a_submit" name='okres'> Reset </a></li>
+                </ul>
+                <h4> Cena </h4>
+                <ul>    
+                    {% for agg in aggs.cena.buckets  %}
+                        {% if agg.doc_count != 0 %}
+                        <li><a class="a_submit" name='cena'> {{agg.from}}-{{agg.to}} eur ({{ agg.doc_count }})</a> </li>
+                        {% endif %}
+                    {% endfor %}
+                        <li><a class="a_submit" name='cena'> Reset </a></li>
+                </ul>
+            </div>
+            <div class="container col-md-9">
+                <h4>Inzeraty </h4>
+                    <ol>
+                    {% for data in result %}
+                    <li> 
+                    <ul style="list-style-type:none" id="{{ data|get:"_id" }}">
+                        <li> <b> Meno inzeratu:</b> {{ data|get:"_source|nazov" }} </li>
+                        <li> <b> Druh:</b> {{ data|get:"_source|druh" }} </li>
+                        <li> <b> Typ:</b> {{ data|get:"_source|typ" }} </li>
+                        <li> <b> Lokalita:</b> {{ data|get:"_source|lokalita" }} </li>
+                        <li> <b> Datum:</b> {{ data|get:"_source|datum" }} </li>
+                        <li> <b> Cena:</b> {{ data|get:"_source|cena" }} eur </li>
+                        {% if data|get:"_source|hypoteka_od" %}
+                            <li> <b> Hypoteka od:</b> {{ data|get:"_source|hypoteka_od" }} eur </li>
+                        {% endif %}
+                        <li> <b> Stav:</b> {{ data|get:"_source|stav" }} </li>
+                        <li> <b> Okres:</b> {{ data|get:"_source|okres" }} </li>
+                        <li> <b> Uzitkova_plocha:</b> {{ data|get:"_source|uzitkova_plocha" }} m2 </li>
+                        <li> <a href="#application" data-toggle="popover" title="Popis inzeratu" data-placement="bottom" data-html="true" data-content="{{ data|get:"_source|popis" }}"><b>Popis</b></a></li>
+                        <li> <a href="#application" data-toggle="popover" title="Kontakt" data-placement="bottom" data-html="true" data-content="{{ data|kontakt }}"><b>Kontakt</b></a></li>
+                        <br><br>
+                    </ul>
+                    </li>
+                        {% endfor%}
+                    </ol>
+            </div>
+        </div>
+
+        {% leaflet_map "map" callback="mapInit" %}
+        <div class="container">
+            <div class="container col-md-6">
+                <form id='coords_form' action="/vinf/" method="POST">
+                    {% csrf_token %}
+                    <div id='1' class="coords">
+                    <p> <b>Poloha</b> </p>
+                    <b>zemepisna sirka:</b> <input class="input_coords" type="text" name="Latitude" value=""><br><br>
+                    <b>zemepisna dlzka:</b> <input class="input_coords" type="text" name="Longtitude" value=""><br><br>
+                    </div>
+                    <div>
+                    <b>vzdialenost v km:</b> <input type="text" name="vzdialenost" value=""><br><br>
+                    <input type="hidden" name="typ" value="geo_search">
+                    <input type='hidden' name='query' value="{{query}}">
+                    </div>
+                    <button id="find_route_btn" class="btn btn-primary btn-md" data-loading-text='<i class="fa fa-spinner fa-spin"></i> Loading GEO Data' type="submit">
+                       Najblizsie inzeraty 
+                    </button>
+                </form>
+            </div>
+            <div class="container col-md-6">
+                {% for agg in aggs.geodistance.buckets  %}
+                    <li> {{agg.from}}-{{agg.to}} km ({{ agg.doc_count }}) </li>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!--<div class="container col-md-5">
+            <p> Settings </p>
+        </div> -->
+    </div> 
+
+{% endblock %}
