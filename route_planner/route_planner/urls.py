@@ -18,6 +18,5 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^', include('routeplanner.urls')),
-    url(r'^vinf/', include('vinf.urls')),
     url(r'^admin/', admin.site.urls),
 ]
