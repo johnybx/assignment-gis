@@ -40,7 +40,6 @@ INSTALLED_APPS = [
 
     'leaflet',
     'routeplanner.apps.RouteplannerConfig',
-    'vinf.apps.VinfConfig',
 ]
 
 MIDDLEWARE = [
